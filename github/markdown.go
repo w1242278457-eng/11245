@@ -172,7 +172,7 @@ func (g *MarkdownGenerator) GeneratePullRequest(pr *PullRequest, level int) stri
 	return sb.String()
 }
 
-func (g *MarkdownGenerator) GenerateIssueList(issues []*Issue, title string, level int) string {
+func (g *MarkdownGenerator) GenerateIssueList(issues []*Issue, title string, emptyMsg string, level int) string {
 	var sb strings.Builder
 
 	if title != "" {
@@ -180,9 +180,13 @@ func (g *MarkdownGenerator) GenerateIssueList(issues []*Issue, title string, lev
 		sb.WriteString("\n")
 	}
 
-	emptyMsg := g.EmptyHandler.FormatEmptyList(issues, NoIssuesMessage)
-	if emptyMsg != "" {
-		sb.WriteString(fmt.Sprintf("> %s\n\n", emptyMsg))
+	if len(issues) == 0 {
+		if emptyMsg == "" {
+			emptyMsg = NoIssuesMessage
+		}
+		if g.EmptyHandler.ShowMessage {
+			sb.WriteString(fmt.Sprintf("> %s\n\n", g.EmptyHandler.GetMessage("issues", emptyMsg)))
+		}
 		return sb.String()
 	}
 
@@ -193,7 +197,7 @@ func (g *MarkdownGenerator) GenerateIssueList(issues []*Issue, title string, lev
 	return sb.String()
 }
 
-func (g *MarkdownGenerator) GeneratePullRequestList(prs []*PullRequest, title string, level int) string {
+func (g *MarkdownGenerator) GeneratePullRequestList(prs []*PullRequest, title string, emptyMsg string, level int) string {
 	var sb strings.Builder
 
 	if title != "" {
@@ -201,9 +205,13 @@ func (g *MarkdownGenerator) GeneratePullRequestList(prs []*PullRequest, title st
 		sb.WriteString("\n")
 	}
 
-	emptyMsg := g.EmptyHandler.FormatEmptyList(prs, NoPRsMessage)
-	if emptyMsg != "" {
-		sb.WriteString(fmt.Sprintf("> %s\n\n", emptyMsg))
+	if len(prs) == 0 {
+		if emptyMsg == "" {
+			emptyMsg = NoPRsMessage
+		}
+		if g.EmptyHandler.ShowMessage {
+			sb.WriteString(fmt.Sprintf("> %s\n\n", g.EmptyHandler.GetMessage("prs", emptyMsg)))
+		}
 		return sb.String()
 	}
 
@@ -237,18 +245,12 @@ func (g *MarkdownGenerator) GenerateRepositoryReport(repo *Repository) string {
 	sb.WriteString(fmt.Sprintf("- 关闭: %d\n", len(closedIssues)))
 	sb.WriteString("\n")
 
-	if len(openIssues) > 0 {
-		SortIssuesByNumber(openIssues, false)
-		sb.WriteString(g.GenerateIssueList(openIssues, "打开的 Issues", g.TitleLevel+1))
-	} else {
-		sb.WriteString(g.header(g.TitleLevel+1, "打开的 Issues"))
-		sb.WriteString("\n")
-		sb.WriteString(fmt.Sprintf("> %s\n\n", g.EmptyHandler.GetMessage("open_issues", NoOpenIssuesMessage)))
-	}
+	SortIssuesByNumber(openIssues, false)
+	sb.WriteString(g.GenerateIssueList(openIssues, "打开的 Issues", NoOpenIssuesMessage, g.TitleLevel+1))
 
 	if len(closedIssues) > 0 {
 		SortIssuesByUpdatedAt(closedIssues, true)
-		sb.WriteString(g.GenerateIssueList(closedIssues, "关闭的 Issues", g.TitleLevel+1))
+		sb.WriteString(g.GenerateIssueList(closedIssues, "关闭的 Issues", "", g.TitleLevel+1))
 	}
 
 	sb.WriteString(g.header(g.TitleLevel+1, "Pull Requests 统计"))
@@ -258,29 +260,15 @@ func (g *MarkdownGenerator) GenerateRepositoryReport(repo *Repository) string {
 	sb.WriteString(fmt.Sprintf("- 已关闭: %d\n", len(closedPRs)))
 	sb.WriteString("\n")
 
-	SortPRsByStatusAndNumber(prsToList(openPRs, mergedPRs, closedPRs))
+	SortPRsByNumber(openPRs, false)
+	sb.WriteString(g.GeneratePullRequestList(openPRs, "打开的 Pull Requests", NoOpenPRsMessage, g.TitleLevel+1))
 
-	if len(openPRs) > 0 {
-		SortPRsByNumber(openPRs, false)
-		sb.WriteString(g.GeneratePullRequestList(openPRs, "打开的 Pull Requests", g.TitleLevel+1))
-	} else {
-		sb.WriteString(g.header(g.TitleLevel+1, "打开的 Pull Requests"))
-		sb.WriteString("\n")
-		sb.WriteString(fmt.Sprintf("> %s\n\n", g.EmptyHandler.GetMessage("open_prs", NoOpenPRsMessage)))
-	}
-
-	if len(mergedPRs) > 0 {
-		SortPRsByUpdatedAt(mergedPRs, true)
-		sb.WriteString(g.GeneratePullRequestList(mergedPRs, "已合并的 Pull Requests", g.TitleLevel+1))
-	} else {
-		sb.WriteString(g.header(g.TitleLevel+1, "已合并的 Pull Requests"))
-		sb.WriteString("\n")
-		sb.WriteString(fmt.Sprintf("> %s\n\n", g.EmptyHandler.GetMessage("merged_prs", NoMergedPRsMessage)))
-	}
+	SortPRsByUpdatedAt(mergedPRs, true)
+	sb.WriteString(g.GeneratePullRequestList(mergedPRs, "已合并的 Pull Requests", NoMergedPRsMessage, g.TitleLevel+1))
 
 	if len(closedPRs) > 0 {
 		SortPRsByUpdatedAt(closedPRs, true)
-		sb.WriteString(g.GeneratePullRequestList(closedPRs, "已关闭的 Pull Requests", g.TitleLevel+1))
+		sb.WriteString(g.GeneratePullRequestList(closedPRs, "已关闭的 Pull Requests", NoClosedPRsMessage, g.TitleLevel+1))
 	}
 
 	return sb.String()

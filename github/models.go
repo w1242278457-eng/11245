@@ -6,10 +6,18 @@ import (
 )
 
 const (
-	TimeFormat = "2006-01-02 15:04:05"
+	TimeFormat     = "2006-01-02 15:04:05"
+	UnknownTimeMsg = "未知时间"
 )
 
+func isZeroTime(t time.Time) bool {
+	return t.IsZero() || t.Unix() <= 0
+}
+
 func FormatTime(t time.Time) string {
+	if isZeroTime(t) {
+		return UnknownTimeMsg
+	}
 	return t.Format(TimeFormat)
 }
 

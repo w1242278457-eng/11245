@@ -33,15 +33,41 @@ func (s *IssueSorter) Sort(issues []*Issue) {
 	}
 
 	slices.SortStableFunc(issues, func(a, b *Issue) int {
+		if a == nil && b == nil {
+			return 0
+		}
+		if a == nil {
+			return 1
+		}
+		if b == nil {
+			return -1
+		}
+
 		var result int
 
 		switch s.Field {
 		case SortByNumber:
 			result = cmp.Compare(a.Number, b.Number)
 		case SortByCreatedAt:
-			result = a.CreatedAt.Compare(b.CreatedAt)
+			if isZeroTime(a.CreatedAt) && isZeroTime(b.CreatedAt) {
+				result = cmp.Compare(a.Number, b.Number)
+			} else if isZeroTime(a.CreatedAt) {
+				result = 1
+			} else if isZeroTime(b.CreatedAt) {
+				result = -1
+			} else {
+				result = a.CreatedAt.Compare(b.CreatedAt)
+			}
 		case SortByUpdatedAt:
-			result = a.UpdatedAt.Compare(b.UpdatedAt)
+			if isZeroTime(a.UpdatedAt) && isZeroTime(b.UpdatedAt) {
+				result = cmp.Compare(a.Number, b.Number)
+			} else if isZeroTime(a.UpdatedAt) {
+				result = 1
+			} else if isZeroTime(b.UpdatedAt) {
+				result = -1
+			} else {
+				result = a.UpdatedAt.Compare(b.UpdatedAt)
+			}
 		case SortByTitle:
 			result = cmp.Compare(a.Title, b.Title)
 		case SortByAuthor:
@@ -106,15 +132,41 @@ func (s *PRSorter) Sort(prs []*PullRequest) {
 	}
 
 	slices.SortStableFunc(prs, func(a, b *PullRequest) int {
+		if a == nil && b == nil {
+			return 0
+		}
+		if a == nil {
+			return 1
+		}
+		if b == nil {
+			return -1
+		}
+
 		var result int
 
 		switch s.Field {
 		case SortByNumber:
 			result = cmp.Compare(a.Number, b.Number)
 		case SortByCreatedAt:
-			result = a.CreatedAt.Compare(b.CreatedAt)
+			if isZeroTime(a.CreatedAt) && isZeroTime(b.CreatedAt) {
+				result = cmp.Compare(a.Number, b.Number)
+			} else if isZeroTime(a.CreatedAt) {
+				result = 1
+			} else if isZeroTime(b.CreatedAt) {
+				result = -1
+			} else {
+				result = a.CreatedAt.Compare(b.CreatedAt)
+			}
 		case SortByUpdatedAt:
-			result = a.UpdatedAt.Compare(b.UpdatedAt)
+			if isZeroTime(a.UpdatedAt) && isZeroTime(b.UpdatedAt) {
+				result = cmp.Compare(a.Number, b.Number)
+			} else if isZeroTime(a.UpdatedAt) {
+				result = 1
+			} else if isZeroTime(b.UpdatedAt) {
+				result = -1
+			} else {
+				result = a.UpdatedAt.Compare(b.UpdatedAt)
+			}
 		case SortByTitle:
 			result = cmp.Compare(a.Title, b.Title)
 		case SortByAuthor:
@@ -174,6 +226,16 @@ func SortPRsByStatusAndNumber(prs []*PullRequest) {
 	}
 
 	slices.SortStableFunc(prs, func(a, b *PullRequest) int {
+		if a == nil && b == nil {
+			return 0
+		}
+		if a == nil {
+			return 1
+		}
+		if b == nil {
+			return -1
+		}
+
 		statusOrder := map[string]int{
 			"open":   0,
 			"draft":  1,
