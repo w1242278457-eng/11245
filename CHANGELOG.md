@@ -1,5 +1,7 @@
 # Changelog
 
+## [v1.23.1](https://github.com/w1242278457-eng/11245/commits/v1.23.1) - 2026-05-03
+
 ## [v1.23.1](https://github.com/k1LoW/deck/compare/v1.23.0...v1.23.1) - 2026-03-19
 ### Other Changes
 - chore(deps): bump the dependencies group with 3 updates by @dependabot[bot] in https://github.com/k1LoW/deck/pull/493
